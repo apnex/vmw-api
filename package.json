@@ -1,0 +1,29 @@
+{
+	"name": "vmw-api",
+	"version": "1.0.1",
+	"description": "Node.js API interface for my.vmware.com",
+	"license": "MIT",
+	"repository": "apnex/vmw-api",
+	"author": {
+		"name": "Andrew Obersnel"
+	},
+	"engines": {
+		"node": ">=8"
+	},
+	"files": [
+		"/lib"
+	],
+	"keywords": [
+		"myvmw",
+		"vmware",
+		"vmw-api",
+		"vmw",
+		"nodejs",
+		""
+	],
+	"dependencies": {
+		"got": "*",
+		"tough-cookie": "*",
+		"chalk": "*"
+	}
+}
