@@ -24,6 +24,8 @@
 	"dependencies": {
 		"got": "*",
 		"tough-cookie": "*",
-		"chalk": "*"
+		"chalk": "*",
+		"progress": "*",
+		"md5-file": "*"
 	}
 }
