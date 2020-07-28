@@ -1,8 +1,0 @@
-# product.list
-
-# product header
-- returns product info and all selectable sub-categories
-
-# product download list
-- show available components in product
-- can render in CLI as a collection of tables

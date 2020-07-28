@@ -1,0 +1,12 @@
+category/version/type
+
+<ls>
+category			## default to latest version and type 'BINARIES'
+category/			## list versions
+category/3.x			## default to type BINARIES
+category/3.x/			## list types
+category/3.x/OPEN_SOURCE	## specific
+
+<find>
+
+<get>
