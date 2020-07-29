@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-const vmwClient = require('./vmw.client');
+const vmwClient = require('./vmw.sdk');
 const params = require('./params.json');
 const streamer = require('./streamer');
 const xtable = require('./xtable');
@@ -57,6 +57,16 @@ if(process.argv[1].match(/vmwcli/g)) {
 				console.log('[' + red('ERROR') + ']: usage ' + blue('get <file.path>'));
 			}
 		break;
+		case 'test':
+			if(args.length >= 2) {
+				cmdPath(args[1]);
+			} else {
+				console.log('[' + red('ERROR') + ']: usage ' + blue('get <file.path>'));
+			}
+		break;
+		/// add a TREE command?
+		/// add a PWD command?
+		/// persist PWD as a variable in state?
 		default:
 			console.log('No command specified [list, index, refresh, find, get, json]');
 		break;
@@ -64,6 +74,81 @@ if(process.argv[1].match(/vmwcli/g)) {
 }
 
 // main
+async function cmdPath(string) {
+	console.log('Path test [' + string + ']');
+	let path = string.split('/');
+	console.log(JSON.stringify(path, null, "\t"));
+	if(path.length == 1) {
+		if(path[0].length > 0) {
+			console.log('Path size 1: ' + path[0]);
+			main(path[0]);
+		}
+	} else if(path.length == 2) {
+		if(path[1].length > 0) {
+			console.log('Path size 2: ' + path[0]);
+			main(path[0], path[1]);
+		} else {
+			console.log('Training Slash!! - call VERSIONS: ' + path[0]);
+			let result = await getProductVersions(client, path[0]);
+			let data = result.versions;
+			let table = new xtable({data});
+			table.run();
+			table.out([
+				'id',
+				'name',
+				'slugUrl',
+				'isSelected'
+			]);
+		}
+	} else if(path.length == 3) {
+		if(path[2].length > 0) {
+			console.log('Path size 3: ' + path[0]);
+			main(path[0], path[1], path[2]);
+		} else {
+			console.log('Training Slash!! - call TYPES');
+			let data = [
+				{id: 'PRODUCT_BINARY'},
+				{id: 'DRIVERS_TOOLS'},
+	                        {id: 'OPEN_SOURCE'},
+				{id: 'CUSTOM_ISO'},
+				{id: 'ADDONS'}
+			];
+			let table = new xtable({data});
+			table.run();
+			table.out(['id']);
+		}
+	} else {
+		console.log('INVALID PATH');
+	}
+	/*"versions": [
+		{
+			"id": "3_x",
+			"name": "3.x",
+			"slugUrl": "./info/slug/networking_security/vmware_nsx_t_data_center/3_x",
+			"isSelected": true
+		},
+		{
+			"id": "2_x",
+			"name": "2.x",
+			"slugUrl": "./info/slug/networking_security/vmware_nsx_t_data_center/2_x",
+			"isSelected": false
+		},
+		{
+			"id": "1_x",
+			"name": "1.x",
+			"slugUrl": "./info/slug/networking_security/vmware_nsx_t_data_center/1_x",
+			"isSelected": false
+		}
+	],*/
+	// vmware_vsphere
+	// vmware_vsphere/
+	// vmware_vsphere//
+	// vmware_vsphere/3_x/PRODUCT_BINARY
+
+	//  path[0] is not empty
+	//  path[0] is not empty
+}
+
 async function cmdGet(fileName) {
 	let nstream = new streamer();
 	try {
@@ -79,13 +164,15 @@ async function cmdGet(fileName) {
 }
 
 // main
-async function main(category) {
+async function main(category, version, type) {
 	try {
 		// test account info
-		await tryAuth(client);
+		let account = await tryAuth(client);
+		//console.log(JSON.stringify(account, null, "\t"));
 
 		// build product cache
-		let result = await getRelatedDLGList(client, category);
+		console.log('MAIN VERSION: ' + version);
+		let result = await getRelatedDLGList(client, category, version, type);
 		let fetchEntries = Object.entries(buildFileList(result));
 
 		// map remaining entries to parallel call array
@@ -131,6 +218,7 @@ async function tryAuth(client) {
 		}
 		return await client.accountInfo();
 	} catch(error) {
+		console.log(error);
 		if(error.code == 401) {
 	                // login
 			console.log('[401]: Clearing stale sessions');
@@ -202,19 +290,42 @@ function buildFileList(result) {
 	return cache;
 }
 
-async function getRelatedDLGList(client, productName) {
-	// format <product>:<train>
+async function getProductVersions(client, productName) {
+	let products = await getProducts(client);
+	console.log('VERSSIOSOON: ' + productName);
+	let product = products.filter((item) => {
+        	return (item.product == productName);
+	})[0];
+	return client.getProductHeader({
+		category: product.category,
+		product: product.product,
+		version: product.version
+	});
+}
+
+async function getRelatedDLGList(client, productName, productVersion, productType) {
+	console.log('PRODUCTS: ' + productName);
 	let products = await getProducts(client);
 	let product = products.filter((item) => {
+		console.log(item);
 		return (item.product == productName);
 	})[0];
+	console.log('HARTY');
+	console.log(JSON.stringify(product, null, "\t"));
 
+	if(typeof(productVersion) == 'undefined') {
+		productVersion = product.version;
+	}
+	if(typeof(productType) == 'undefined') {
+		productType = product.dlgType;
+	}
 	let params = {
 		category: product.category,
 		product: product.product,
-		version: product.version,
-		dlgType: product.dlgType
+		version: productVersion,
+		dlgType: productType
 	};
+	console.log(JSON.stringify(params, null, "\t"));
 	return client.getRelatedDLGList(params);
 }
 
