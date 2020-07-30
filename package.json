@@ -22,11 +22,13 @@
 		""
 	],
 	"dependencies": {
-		"got": "*",
-		"tough-cookie": "*",
-		"tough-cookie-file-store": "*",
 		"chalk": "*",
+		"got": "*",
+		"md5-file": "*",
+		"node-persist": "^3.1.0",
+		"p-map": "^4.0.0",
 		"progress": "*",
-		"md5-file": "*"
+		"tough-cookie": "*",
+		"tough-cookie-file-store": "*"
 	}
 }
